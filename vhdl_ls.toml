@@ -1,0 +1,4 @@
+standard = "2008"
+
+[libraries]
+work.files = ["work/*.vhdl"]
