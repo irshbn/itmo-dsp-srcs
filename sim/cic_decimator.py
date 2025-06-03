@@ -1,9 +1,9 @@
-import pandas as pd
 from pathlib import Path
-import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import Timer, RisingEdge
 
+import cocotb
+import pandas as pd
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge, Timer
 
 datadir = Path(__file__).resolve().parent.parent / "data"
 df = pd.read_csv(datadir / "input1.csv", comment="#")

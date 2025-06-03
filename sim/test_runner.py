@@ -1,7 +1,8 @@
-import pytest
 from pathlib import Path
-from cocotb_tools.runner import Runner, get_runner
-from utils import *
+
+import pytest
+from cocotb_tools.runner import get_runner
+from utils import get_dependencies, run
 
 workdir = Path().resolve() / "work"
 
@@ -16,6 +17,7 @@ def setup_runner():
 
 
 class TestCIC:
+
     top = "cic_decimator"
     pkgs, modules = get_dependencies(top, workdir)
 
