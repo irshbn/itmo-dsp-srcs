@@ -1,17 +1,42 @@
+--------------------------------------------------------------------------------
+--       ___  _________  _____ ______   ________     
+--      |\  \|\___   ___\\   _ \  _   \|\   __  \    
+--      \ \  \|___ \  \_\ \  \\\__\ \  \ \  \|\  \   
+--       \ \  \   \ \  \ \ \  \\|__| \  \ \  \\\  \  
+--        \ \  \   \ \  \ \ \  \    \ \  \ \  \\\  \ 
+--         \ \__\   \ \__\ \ \__\    \ \__\ \_______\
+--          \|__|    \|__|  \|__|     \|__|\|_______|
+--      
+--------------------------------------------------------------------------------
+--! @copyright CERN-OHL-W-2.0
+--
+-- You may use, distribute and modify this code under the terms of the
+-- CERN OHL v2 Weakly Reciprocal license. 
+--
+-- You should have received a copy of the CERN OHL v2 Weakly Reciprocal license
+-- with this file. If not, please visit: https://cern-ohl.web.cern.ch/home
+--------------------------------------------------------------------------------
+--! @date June 6, 2025
+--! @author Yaroslav Shubin <irshubin@itmo.ru>
+--------------------------------------------------------------------------------
+--! @brief Generic cascaded integrator-comb decimator
+--------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity cic_decimator is
   generic (
-    cic_order : positive range 1 to 7 := 7; -- M
+    cic_order : positive range 1 to 7 := 3; -- M
     comb_taps : positive range 1 to 2 := 2; -- N
     dec_ratio : positive              := 64; -- R, expected to be power of 2
 
     compensate : boolean := false; -- enable compensator filter
 
     s_axis_data_width : positive := 1;
-    m_axis_data_width : positive := 50
+    m_axis_data_width : positive := 12
   );
   port (
     aclk    : in std_logic;
@@ -29,25 +54,26 @@ end entity cic_decimator;
 
 architecture rtl of cic_decimator is
 
-  constant gain_bits   : natural := cic_order * find_leftmost(to_unsigned(comb_taps * dec_ratio, 32), '1');
-  constant min_regsize : natural := s_axis_data_width + gain_bits;
+  constant gain_bits   : natural := cic_order * natural(ceil(log2(real(comb_taps * dec_ratio))));
+  constant input_bits  : natural := maximum(2, s_axis_data_width);
+  constant min_regsize : natural := input_bits + gain_bits;
 
   type int_array_t is array (natural range <>) of signed(min_regsize - 1 downto 0);
 
   signal integrators : int_array_t(0 to cic_order);
-  signal comb_dl     : int_array_t(0 to cic_order * (comb_taps + 1)); --(cic_order + 1)* (comb_taps + 1)
+  signal comb_dl     : int_array_t(0 to cic_order * (comb_taps + 1));
   signal fir_dl      : int_array_t(0 to 2 * cic_order - 1);
 
   signal fir_sum : signed(min_regsize - 1 downto 0);
   signal fir_neg : signed(min_regsize - 1 downto 0);
 
-  signal dec_cnt : unsigned(find_leftmost(to_unsigned(dec_ratio + cic_order, 32), '1') downto 0);
-  signal out_cnt : unsigned(find_leftmost(to_unsigned(comb_dl'length + fir_dl'length, 32), '1') downto 0);
+  signal dec_cnt : unsigned(find_leftmost(to_unsigned(maximum(dec_ratio - 1, cic_order + 1), 32), '1') downto 0);
+  signal out_cnt : unsigned(find_leftmost(to_unsigned(cic_order + fir_dl'length + 1, 32), '1') downto 0);
 
 begin
   assert m_axis_data_width >= min_regsize
   report "Output bus width is too short, output will be truncated"
-    severity error;
+    severity warning;
   --------------------------------------------------------------------------------
   -- Main process
   --------------------------------------------------------------------------------
@@ -57,10 +83,11 @@ begin
       if aresetn = '0' then
         s_axis_tready <= '0';
         m_axis_tvalid <= '0';
-        dec_cnt       <= to_unsigned(dec_ratio + cic_order - 1, dec_cnt'length);
-        out_cnt       <= to_unsigned(cic_order * (comb_taps + 1), out_cnt'length);
-        integrators   <= (others => (others => '0'));
-        comb_dl       <= (others => (others => '0'));
+        dec_cnt       <= to_unsigned(integrators'length, dec_cnt'length);
+        out_cnt       <= to_unsigned(cic_order + fir_dl'length + 1, out_cnt'length) when compensate
+          else to_unsigned(cic_order + 1, out_cnt'length);
+        integrators <= (others => (others => '0'));
+        comb_dl     <= (others => (others => '0'));
       else
         s_axis_tready <= '1';
 

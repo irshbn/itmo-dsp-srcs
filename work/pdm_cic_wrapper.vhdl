@@ -60,7 +60,7 @@ begin
 
   cic_decimator_inst : entity work.cic_decimator
     generic map(
-      cic_order         => cic_order,
+      CIC_ORDER         => cic_order,
       comb_taps         => comb_taps,
       dec_ratio         => dec_ratio,
       compensate        => compensate,
