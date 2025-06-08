@@ -10,7 +10,7 @@ entity pdm_cic_wrapper is
     -- CIC generics
     cic_order : positive range 1 to 7 := 1; -- M
     comb_taps : positive range 1 to 2 := 1; -- N
-    dec_ratio : positive              := 64; -- R, expected to be power of 2
+    dec_ratio : positive              := 64; -- R
 
     compensate : boolean := false; -- enable compensator filter
 

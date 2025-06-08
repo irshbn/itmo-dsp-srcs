@@ -16,7 +16,7 @@
 -- You should have received a copy of the CERN OHL v2 Weakly Reciprocal license
 -- with this file. If not, please visit: https://cern-ohl.web.cern.ch/home
 --------------------------------------------------------------------------------
---! @date June 6, 2025
+--! @date June 8, 2025
 --! @author Yaroslav Shubin <irshubin@itmo.ru>
 --------------------------------------------------------------------------------
 --! @brief Generic cascaded integrator-comb decimator
@@ -29,14 +29,14 @@ use ieee.math_real.all;
 
 entity cic_decimator is
   generic (
-    cic_order : positive range 1 to 7 := 3; -- M
-    comb_taps : positive range 1 to 2 := 2; -- N
-    dec_ratio : positive              := 64; -- R, expected to be power of 2
+    cic_order : positive range 1 to 7 := 3; -- Filter order
+    comb_taps : positive range 1 to 2 := 2; -- Differential comb delay
+    dec_ratio : positive              := 64; -- Decimation ratio
 
-    compensate : boolean := false; -- enable compensator filter
+    compensate : boolean := false; -- Enable compensator filter
 
-    s_axis_data_width : positive := 1;
-    m_axis_data_width : positive := 12
+    s_axis_data_width : positive := 1; -- Input bus width
+    m_axis_data_width : positive := 12 -- Output bus width
   );
   port (
     aclk    : in std_logic;

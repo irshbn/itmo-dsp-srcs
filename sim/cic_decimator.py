@@ -1,4 +1,4 @@
-"""
+r"""
 --------------------------------------------------------------------------------
 --       ___  _________  _____ ______   ________     
 --      |\  \|\___   ___\\   _ \  _   \|\   __  \    
@@ -159,6 +159,11 @@ async def test_pdm(dut):
 
     plt.subplot(211)
     plt.plot(ser)
+    plt.gca().set_xlabel("Sample")
+    plt.gca().set_ylabel("Amplitude")
     plt.subplot(212)
     plt.plot(out)
+    plt.gca().set_xlabel("Sample")
+    plt.gca().set_ylabel("Amplitude")
+    plt.tight_layout()
     plt.savefig(datadir / "io1.jpg")

@@ -1,4 +1,4 @@
-"""
+r"""
 --------------------------------------------------------------------------------
 --       ___  _________  _____ ______   ________     
 --      |\  \|\___   ___\\   _ \  _   \|\   __  \    
@@ -60,6 +60,8 @@ def purge_results(request):
         src.unlink()
 
 
+@allure.epic("Digital signal processing")
+@allure.feature("CIC decimation filter")
 class TestCIC:
     """Wrapper class for CIC filter tests"""
 
@@ -117,6 +119,7 @@ class TestCIC:
             "test_dir": projdir / "sim_build",
         }
 
+    @allure.story("Impulse response")
     @pytest.mark.parametrize(
         "cic_order,comb_taps,dec_ratio", cic_generic_combos, ids=(lambda val: val)
     )
@@ -124,9 +127,9 @@ class TestCIC:
         """Parametrised impulse response test runner
 
         Args:
-            cic_order (int): Instance of a set of CIC order values
-            comb_taps (int): Instance of a set of comb taps count values
-            dec_ratio (int): Instance of a set of decimation ratio values
+            cic_order (int): CIC order
+            comb_taps (int): Differential comb delay
+            dec_ratio (int): Decimation ratio
         """
         generics = {
             "cic_order": cic_order,
@@ -143,6 +146,7 @@ class TestCIC:
                 **self.test_kwargs, test_filter="test_impulse", parameters=generics
             )
 
+    @allure.story("Step resonse")
     @pytest.mark.parametrize(
         "cic_order,comb_taps,dec_ratio", cic_generic_combos, ids=(lambda val: val)
     )
@@ -150,9 +154,9 @@ class TestCIC:
         """Parametrised step response test runner
 
         Args:
-            cic_order (int): Instance of a set of CIC order values
-            comb_taps (int): Instance of a set of comb taps count values
-            dec_ratio (int): Instance of a set of decimation ratio values
+            cic_order (int): CIC order
+            comb_taps (int): Differential comb delay
+            dec_ratio (int): Decimation ratio
         """
         generics = {
             "cic_order": cic_order,
@@ -169,6 +173,7 @@ class TestCIC:
                 **self.test_kwargs, test_filter="test_step", parameters=generics
             )
 
+    @allure.story("PDM bitstream")
     def test_pdm(self):
         """PDM test runner with fixed, close-to-real-world filter parameters"""
         generics = {
@@ -179,6 +184,10 @@ class TestCIC:
             "s_axis_data_width": 2,
             "m_axis_data_width": 2 + 3 * ceil(log2(2 * 64)),
         }
+        allure.dynamic.parameter("cic_order", generics["cic_order"])
+        allure.dynamic.parameter("comb_taps", generics["comb_taps"])
+        allure.dynamic.parameter("dec_ratio", generics["dec_ratio"])
+
         with allure.step("Build"):
             runner.build(**self.build_kwargs, always=True, parameters=generics)
         with allure.step("Test"):
