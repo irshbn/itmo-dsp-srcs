@@ -96,8 +96,11 @@ begin
           dec_cnt <= dec_cnt - 1;
 
           -- Input resizing
-          integrators(integrators'low) <= resize(signed(s_axis_tdata), min_regsize) when s_axis_data_width > 1 else
-          signed(resize(unsigned(s_axis_tdata), min_regsize));
+          if s_axis_data_width > 1 then
+            integrators(integrators'low) <= resize(signed(s_axis_tdata), min_regsize);
+          else
+            integrators(integrators'low) <= to_signed(1, min_regsize) when s_axis_tdata(0) = '1' else to_signed(-1, min_regsize);
+          end if;
 
           -- Integration
           for i in integrators'low + 1 to integrators'high loop
